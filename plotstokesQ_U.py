@@ -9,6 +9,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import os
+import plothealpix_mixer
 
 
 def plotstokesQ_U(filename_Q, filename_U, plotfile_base=None, plotdirectory=None, save_show=None):
@@ -27,33 +28,32 @@ def plotstokesQ_U(filename_Q, filename_U, plotfile_base=None, plotdirectory=None
     data_U = contents_U[1].data
     nside_U = contents_U[1].header['nside']
 
+    if pixelnum_U == pixelnum_Q and nside_U == nside_Q:
+        pixelnum_Q = pixelnum_U
+        nside_Q = nside_U
+    if not pixelnum_U == pixelnum_Q and nside_U == nside_Q:
+        raise ValueError("files do not have same indices.")
+
+
     # extract data from specified files
     pixels_Q = data_Q.field('PIXEL')
     signal_Q = data_Q.field('SIGNAL')
     pixels_U = data_U.field('PIXEL')
     signal_U = data_U.field('SIGNAL')
 
-    ra_Q, dec_Q = hp.pixelfunc.pix2ang(int(nside_Q), pixels_Q, nest=False, lonlat=True)
-    ra_Q[np.where(ra_Q > 180)] -= 360
-    ra_U, dec_U = hp.pixelfunc.pix2ang(int(nside_U), pixels_Q, nest=False, lonlat=True)
-    ra_U[np.where(ra_U > 180)] -= 360
-
     # Finding x and y from Stokes parameters U and Q
     Q = signal_Q
     U = signal_U
-    # print U
     K = np.sqrt(U**2 + Q**2)
     U_pos = U[np.where(U >= 0)]
     U_neg = U[np.where(U < 0)]
-
     # theta is in radians
     theta = (.5 * np.arccos(((K + Q) / K) - 1))
     theta[np.where(U >= 0)] = theta
     theta[np.where(U < 0)] = theta + np.pi / 2
-    theta.shape
-
-    x = K * np.cos(theta)
-    y = K * np.sin(theta)
+    # the x and y components of the theta-mag points.
+    x_stokes = K * np.cos(theta)
+    y_stokes = K * np.sin(theta)
 
     if plotfile_base is None:
         plotfile_base = os.path.splitext(filename_Q)[0] + '_' + os.path.splitext(filename_U)[0]
@@ -64,10 +64,10 @@ def plotstokesQ_U(filename_Q, filename_U, plotfile_base=None, plotdirectory=None
         os.makedirs(plotdirectory)
     plotfile_base = os.path.join(plotdirectory, plotfile_base)
     plotfile = plotfile_base + '.png'
-
-    plt.hist2d(x, y, bins=150, norm=LogNorm())
+    # manipulate histogram for number of bins, color scheme.
+    plt.hist2d(x_stokes, y_stokes, bins=150, norm=LogNorm())
     plt.colorbar()
-
+    # either show the graph, or save it to a location.
     if save_show is None or save_show == 'show':
         plt.show()
     elif save_show == 'save':
@@ -75,3 +75,5 @@ def plotstokesQ_U(filename_Q, filename_U, plotfile_base=None, plotdirectory=None
         print "saved plot to " + plotfile
     else:
         raise ValueError("Do you want to save or show the image?")
+    # using the function defined in plothealpix_map to graph the data on a globe.
+    plothealpix_map.mapping(nside_Q, pixels_Q, plotfile, theta, 'nest')
