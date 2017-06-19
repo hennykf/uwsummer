@@ -9,7 +9,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import os
 import warnings
-import plothealpix_mixer
+import plothealpix_map
 
 
 def plothealpix(filename, frequency, plottype='residual_data', plotfile_base=None, plotdirectory=None, save_show=None):
