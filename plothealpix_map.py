@@ -20,14 +20,10 @@ def mapping(nside, pixelnum, plotfile, data, nest_or_ring='ring'):
     ra[np.where(ra > 180)] -= 360
     # plot of Galactic gas with coordinate projection
     min_ra = np.min(ra)
-    print min_ra
     max_ra = np.max(ra)
-    print max_ra
     mean_ra = np.mean(ra)
     min_dec = np.min(dec)
-    print min_dec
     max_dec = np.max(dec)
-    print max_dec
     mean_dec = np.mean(dec)
 
     fig = plt.figure()
@@ -42,4 +38,5 @@ def mapping(nside, pixelnum, plotfile, data, nest_or_ring='ring'):
     # creates a scatter plot of the selected data on a globe.
     m.scatter(x, y, 3, marker='o', linewidths=.1, c=data, cmap=plt.cm.coolwarm)
     m.colorbar()
-    plt.show(plotfile)
+    print "saved map to " + m
+    plt.savefig(m)
