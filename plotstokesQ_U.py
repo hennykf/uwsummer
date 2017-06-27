@@ -9,14 +9,15 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import os
+import plothealpix_map_coords
 import plothealpix_map
 
 
 def plotstokesQ_U(filename_Q, filename_U, plotfile_base=None, plotdirectory=None, save_show=None):
     if not filename_U.endswith('.fits'):
-        raise ValueError("files must be .fits")
+        raise ValueError("Stokes U file is not a fits file. Files must be .fits files")
     if not filename_Q.endswith('.fits'):
-        raise ValueError("files must be .fits")
+        raise ValueError("Stokes Q file is not a fits file. Files must be .fits files")
     # get header and data info from the fits file
     contents_Q = fits.open(filename_Q)
     pixelnum_Q = contents_Q[1].header['naxis1'] * contents_Q[1].header['naxis2']
@@ -33,7 +34,6 @@ def plotstokesQ_U(filename_Q, filename_U, plotfile_base=None, plotdirectory=None
         nside_Q = nside_U
     if not pixelnum_U == pixelnum_Q and nside_U == nside_Q:
         raise ValueError("files do not have same indices.")
-
 
     # extract data from specified files
     pixels_Q = data_Q.field('PIXEL')
@@ -77,4 +77,5 @@ def plotstokesQ_U(filename_Q, filename_U, plotfile_base=None, plotdirectory=None
         raise ValueError("Do you want to save or show the image?")
     # using the function defined in plothealpix_map to graph the data on a globe.
     plothealpix_map.mapping(nside_Q, pixels_Q, plotfile, theta, 'nest')
+    plt.show()
     return x_stokes, y_stokes
